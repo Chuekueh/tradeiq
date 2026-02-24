@@ -7,6 +7,12 @@ from src.generation.hallucination_detector import HallucinationDetector
 from src.generation.llm_service import LLMService
 from src.generation.prompts import RAG_PROMPT_TEMPLATE, SYSTEM_PROMPT
 from src.generation.response_parser import ParsedResponse, ResponseParser
+from src.guardrails.pipeline import (
+    ADVICE_BLOCKED_RESPONSE,
+    BLOCKED_RESPONSE,
+    GuardrailAction,
+    GuardrailsPipeline,
+)
 from src.memory.conversation_memory import ConversationMemory
 from src.retrieval.corrective_rag import RetrievalGrader
 from src.retrieval.hybrid_search import HybridSearcher
@@ -33,7 +39,7 @@ class RAGResponse:
 
 
 class RAGChain:
-    """Orchestrates the full RAG pipeline: retrieve -> rerank -> generate."""
+    """Orchestrates the full RAG pipeline: guardrails -> retrieve -> rerank -> generate."""
 
     def __init__(
         self,
@@ -48,6 +54,7 @@ class RAGChain:
         query_router: QueryRouter | None = None,
         query_transformer: QueryTransformer | None = None,
         hallucination_detector: HallucinationDetector | None = None,
+        guardrails_pipeline: GuardrailsPipeline | None = None,
     ):
         self._searcher = searcher
         self._reranker = reranker
@@ -60,6 +67,7 @@ class RAGChain:
         self._router = query_router
         self._transformer = query_transformer
         self._hallucination_detector = hallucination_detector
+        self._guardrails = guardrails_pipeline
 
     def invoke(
         self,
@@ -68,6 +76,29 @@ class RAGChain:
         where: dict | None = None,
     ) -> RAGResponse:
         start = time.perf_counter()
+
+        # -1. Input guardrails (prompt injection, topic filter, PII redaction)
+        if self._guardrails:
+            input_result = self._guardrails.run_input_guards(query)
+            if input_result.action == GuardrailAction.BLOCK:
+                total_ms = (time.perf_counter() - start) * 1000
+                logger.warning(
+                    "guardrail_blocked_input",
+                    guardrail=input_result.guardrail_name,
+                    reason=input_result.reason,
+                )
+                return RAGResponse(
+                    answer=BLOCKED_RESPONSE,
+                    sources=[],
+                    cited_sources=[],
+                    session_id=session_id,
+                    query_time_ms=round(total_ms, 1),
+                    retrieval_time_ms=0.0,
+                    generation_time_ms=0.0,
+                    model_used=self._llm.model_name,
+                )
+            if input_result.action == GuardrailAction.MODIFY and input_result.modified_text:
+                query = input_result.modified_text
 
         # 0. Adaptive query routing
         effective_retrieval_k = self._retrieval_top_k
@@ -167,6 +198,32 @@ class RAGChain:
             )
             faithfulness_score = verification.faithfulness_score
             flagged_claims = verification.flagged_claims
+
+        # 6.8. Output guardrails (advice detection, PII, content safety, disclaimer)
+        if self._guardrails:
+            output_result = self._guardrails.run_output_guards(parsed.answer)
+            if output_result.action == GuardrailAction.BLOCK:
+                total_ms = (time.perf_counter() - start) * 1000
+                logger.warning(
+                    "guardrail_blocked_output",
+                    guardrail=output_result.guardrail_name,
+                    reason=output_result.reason,
+                )
+                return RAGResponse(
+                    answer=ADVICE_BLOCKED_RESPONSE,
+                    sources=reranked,
+                    cited_sources=[],
+                    session_id=session_id,
+                    query_time_ms=round(total_ms, 1),
+                    retrieval_time_ms=round(retrieval_ms, 1),
+                    generation_time_ms=round(gen_ms, 1),
+                    model_used=response.model,
+                )
+            if output_result.action == GuardrailAction.MODIFY and output_result.modified_text:
+                parsed = ParsedResponse(
+                    answer=output_result.modified_text,
+                    cited_sources=parsed.cited_sources,
+                )
 
         # 7. Save to memory
         self._memory.add_message(session_id, "user", query)

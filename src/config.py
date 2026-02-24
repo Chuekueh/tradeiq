@@ -39,6 +39,15 @@ class Settings(BaseSettings):
     adaptive_routing_enabled: bool = True
     hallucination_detection_enabled: bool = True
 
+    # Guardrails
+    guardrails_enabled: bool = True
+    prompt_injection_detection_enabled: bool = True
+    prompt_injection_threshold: float = 0.85
+    topic_filter_enabled: bool = True
+    pii_detection_enabled: bool = True
+    financial_advice_detection_enabled: bool = True
+    content_safety_enabled: bool = True
+
     # Chunking
     chunk_size: int = 512
     chunk_overlap: int = 50
