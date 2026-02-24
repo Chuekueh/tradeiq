@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import structlog
 
@@ -7,6 +10,9 @@ from src.ingestion.chunkers.base import BaseChunker, Chunk
 from src.ingestion.loaders.base import BaseLoader
 from src.ingestion.processors.metadata_extractor import MetadataExtractor
 from src.ingestion.processors.text_cleaner import TextCleaner
+
+if TYPE_CHECKING:
+    from src.ingestion.processors.context_enricher import ContextEnricher
 
 logger = structlog.get_logger()
 
@@ -26,11 +32,13 @@ class IngestionPipeline:
         chunker: BaseChunker,
         metadata_extractor: MetadataExtractor,
         text_cleaner: TextCleaner,
+        context_enricher: ContextEnricher | None = None,
     ):
         self._loaders = loaders
         self._chunker = chunker
         self._metadata_extractor = metadata_extractor
         self._text_cleaner = text_cleaner
+        self._context_enricher = context_enricher
 
     def _get_loader(self, path: str) -> BaseLoader | None:
         for loader in self._loaders:
@@ -52,6 +60,10 @@ class IngestionPipeline:
             doc.content = self._text_cleaner.clean(doc.content)
             doc = self._metadata_extractor.extract(doc)
             chunks = self._chunker.chunk(doc)
+
+            if self._context_enricher and self._context_enricher.enabled:
+                chunks = self._context_enricher.enrich_batch(doc.content, chunks)
+
             all_chunks.extend(chunks)
 
         logger.info(

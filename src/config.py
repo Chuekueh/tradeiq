@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     chunk_size: int = 512
     chunk_overlap: int = 50
 
+    # Contextual retrieval
+    contextual_retrieval_enabled: bool = False
+
     # API
     api_host: str = "0.0.0.0"
     api_port: int = 8000
