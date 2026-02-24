@@ -160,8 +160,7 @@ class RAGChain:
         if self._hallucination_detector and reranked:
             contexts = [r.content for r in reranked]
             source_names = [
-                r.metadata.get("file_name", r.source) if r.metadata else r.source
-                for r in reranked
+                r.metadata.get("file_name", r.source) if r.metadata else r.source for r in reranked
             ]
             verification = self._hallucination_detector.verify(
                 parsed.answer, contexts, source_names

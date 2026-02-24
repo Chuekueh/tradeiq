@@ -1,4 +1,3 @@
-
 from src.generation.chain import RAGChain
 from src.vectorstore.base import SearchResult
 
