@@ -94,3 +94,30 @@ class ChromaVectorStore(BaseVectorStore):
         """Retrieve all document IDs."""
         result = self._collection.get()
         return result["ids"]
+
+    def get_by_ids(self, ids: list[str]) -> list[SearchResult]:
+        """Retrieve specific documents by their IDs."""
+        if not ids:
+            return []
+
+        result = self._collection.get(ids=ids, include=["documents", "metadatas"])
+        search_results: list[SearchResult] = []
+
+        if result["documents"]:
+            for doc, meta, id_ in zip(
+                result["documents"],
+                result["metadatas"],  # type: ignore[arg-type]
+                result["ids"],
+                strict=True,
+            ):
+                search_results.append(
+                    SearchResult(
+                        content=doc,
+                        metadata=meta,  # type: ignore[arg-type]
+                        source=str(meta.get("file_name", "")),
+                        chunk_id=id_,
+                        score=0.0,
+                    )
+                )
+
+        return search_results
