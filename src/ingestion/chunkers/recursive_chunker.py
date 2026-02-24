@@ -29,9 +29,9 @@ class RecursiveChunker(BaseChunker):
         chunks: list[Chunk] = []
 
         for i, text in enumerate(texts):
-            chunk_id = hashlib.sha256(
-                f"{document.doc_id}:{i}:{text[:100]}".encode()
-            ).hexdigest()[:16]
+            chunk_id = hashlib.sha256(f"{document.doc_id}:{i}:{text[:100]}".encode()).hexdigest()[
+                :16
+            ]
 
             chunks.append(
                 Chunk(

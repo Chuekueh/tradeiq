@@ -54,9 +54,7 @@ class RAGMetrics:
         return dcg / idcg if idcg > 0 else 0.0
 
     @staticmethod
-    def faithfulness(
-        answer: str, contexts: list[str], llm: LLMService
-    ) -> float:
+    def faithfulness(answer: str, contexts: list[str], llm: LLMService) -> float:
         """LLM-as-judge: Is the answer faithful to the provided context?"""
         context_text = "\n\n".join(contexts)
         response = llm.generate(
@@ -73,8 +71,7 @@ class RAGMetrics:
                 {
                     "role": "user",
                     "content": (
-                        f"Context:\n{context_text}\n\n"
-                        f"Answer:\n{answer}\n\nFaithfulness score:"
+                        f"Context:\n{context_text}\n\nAnswer:\n{answer}\n\nFaithfulness score:"
                     ),
                 },
             ],
@@ -87,9 +84,7 @@ class RAGMetrics:
             return 0.0
 
     @staticmethod
-    def answer_relevancy(
-        question: str, answer: str, llm: LLMService
-    ) -> float:
+    def answer_relevancy(question: str, answer: str, llm: LLMService) -> float:
         """LLM-as-judge: Is the answer relevant to the question?"""
         response = llm.generate(
             messages=[

@@ -6,10 +6,12 @@ on:
     paths:
       - "src/**"
       - "data/evaluation/**"
+  workflow_dispatch:
 
 jobs:
   evaluate:
     runs-on: ubuntu-latest
+    if: ${{ secrets.OPENAI_API_KEY != '' }}
     env:
       RAG_OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     steps:
@@ -19,10 +21,17 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies
         run: pip install -e ".[dev]"
+      - name: Check API key
+        run: |
+          if [ -z "$RAG_OPENAI_API_KEY" ]; then
+            echo "::warning::OPENAI_API_KEY secret not set. Skipping evaluation."
+            exit 0
+          fi
       - name: Run evaluation
         run: python scripts/run_evaluation.py --output-md evaluation-report.md --output-json evaluation-results.json
       - name: Upload evaluation report
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: evaluation-report
           path: |

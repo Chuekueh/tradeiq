@@ -89,17 +89,11 @@ class RAGEvaluator:
             question=sample.question,
             answer=response.answer,
             ground_truth=sample.ground_truth_answer,
-            context_precision=RAGMetrics.context_precision(
-                retrieved_sources, gt_sources
-            ),
-            context_recall=RAGMetrics.context_recall(
-                retrieved_sources, gt_sources
-            ),
+            context_precision=RAGMetrics.context_precision(retrieved_sources, gt_sources),
+            context_recall=RAGMetrics.context_recall(retrieved_sources, gt_sources),
             mrr=RAGMetrics.mrr(retrieved_sources, gt_sources),
             ndcg=RAGMetrics.ndcg_at_k(retrieved_sources, gt_sources),
-            faithfulness=RAGMetrics.faithfulness(
-                response.answer, contexts, self._llm
-            ),
+            faithfulness=RAGMetrics.faithfulness(response.answer, contexts, self._llm),
             answer_relevancy=RAGMetrics.answer_relevancy(
                 sample.question, response.answer, self._llm
             ),

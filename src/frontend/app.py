@@ -145,12 +145,14 @@ def main() -> None:
                     f"Model: {timing['model_used']}"
                 )
 
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": data["answer"],
-                    "sources": data.get("sources", []),
-                    "timing": timing,
-                })
+                st.session_state.messages.append(
+                    {
+                        "role": "assistant",
+                        "content": data["answer"],
+                        "sources": data.get("sources", []),
+                        "timing": timing,
+                    }
+                )
 
             except httpx.ConnectError:
                 st.error("Cannot connect to API. Make sure the backend is running: `make run`")

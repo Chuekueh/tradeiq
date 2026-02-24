@@ -1,4 +1,3 @@
-
 from src.config import Settings, get_settings
 from src.embeddings.embedding_service import EmbeddingService
 from src.generation.chain import RAGChain
@@ -23,9 +22,7 @@ class AppState:
     def initialize(self) -> None:
         self.settings = get_settings()
 
-        self.embedding_service = EmbeddingService(
-            model_name=self.settings.embedding_model.value
-        )
+        self.embedding_service = EmbeddingService(model_name=self.settings.embedding_model.value)
         self.vector_store = ChromaVectorStore(self.settings)
         self.memory = ConversationMemory()
 

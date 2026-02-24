@@ -24,9 +24,7 @@ def test_no_citations():
 
 def test_duplicate_citations():
     parser = ResponseParser()
-    response = (
-        "First point [Source: doc.md]. Second point [Source: doc.md]."
-    )
+    response = "First point [Source: doc.md]. Second point [Source: doc.md]."
     parsed = parser.parse(response)
 
     assert len(parsed.cited_sources) == 1

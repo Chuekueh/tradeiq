@@ -21,9 +21,7 @@ class ConversationMemory:
                 timestamp REAL NOT NULL
             )
         """)
-        self._conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_session ON messages(session_id)"
-        )
+        self._conn.execute("CREATE INDEX IF NOT EXISTS idx_session ON messages(session_id)")
         self._conn.commit()
 
     def add_message(self, session_id: str, role: str, content: str) -> None:

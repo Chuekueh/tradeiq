@@ -19,9 +19,28 @@ class MetadataExtractor:
     }
 
     KNOWN_TICKERS = {
-        "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA",
-        "JPM", "V", "JNJ", "WMT", "PG", "MA", "UNH", "HD",
-        "DIS", "BAC", "ADBE", "CRM", "NFLX", "INTC", "AMD",
+        "AAPL",
+        "MSFT",
+        "GOOGL",
+        "AMZN",
+        "NVDA",
+        "META",
+        "TSLA",
+        "JPM",
+        "V",
+        "JNJ",
+        "WMT",
+        "PG",
+        "MA",
+        "UNH",
+        "HD",
+        "DIS",
+        "BAC",
+        "ADBE",
+        "CRM",
+        "NFLX",
+        "INTC",
+        "AMD",
     }
 
     def extract(self, document: Document) -> Document:

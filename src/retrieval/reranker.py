@@ -13,9 +13,7 @@ class Reranker:
         logger.info("loading_reranker", model=model_name)
         self._model = CrossEncoder(model_name)
 
-    def rerank(
-        self, query: str, results: list[SearchResult], top_k: int = 3
-    ) -> list[SearchResult]:
+    def rerank(self, query: str, results: list[SearchResult], top_k: int = 3) -> list[SearchResult]:
         if not results:
             return []
 
