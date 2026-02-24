@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     chunk_overlap: int = 50
     chunking_strategy: ChunkingStrategy = ChunkingStrategy.RECURSIVE
 
+    # Contextual retrieval
+    contextual_retrieval_enabled: bool = False
+
     # API
     api_host: str = "0.0.0.0"
     api_port: int = 8000
