@@ -33,6 +33,11 @@ class Settings(BaseSettings):
     chunk_size: int = 512
     chunk_overlap: int = 50
 
+    # Parent-child retrieval
+    parent_child_enabled: bool = True
+    parent_chunk_size: int = 1024
+    child_chunk_size: int = 256
+
     # API
     api_host: str = "0.0.0.0"
     api_port: int = 8000
