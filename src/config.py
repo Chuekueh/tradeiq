@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     # Advanced RAG features
     corrective_rag_enabled: bool = True
     adaptive_routing_enabled: bool = True
+    hallucination_detection_enabled: bool = True
 
     # Chunking
     chunk_size: int = 512
