@@ -1,0 +1,74 @@
+[
+  {
+    "question": "What are Apple's main risk factors from their latest 10-K filing?",
+    "ground_truth_answer": "Apple's key risk factors include macroeconomic conditions, intense competition, supply chain dependencies, and regulatory changes affecting their global operations.",
+    "ground_truth_sources": ["AAPL_10-K"],
+    "metadata": {"ticker": "AAPL", "category": "risk_factors"}
+  },
+  {
+    "question": "How did Microsoft's cloud revenue perform in Q3 2024?",
+    "ground_truth_answer": "Microsoft's cloud revenue showed strong year-over-year growth driven by Azure adoption and enterprise AI integration.",
+    "ground_truth_sources": ["MSFT_Q3_2024_earnings.md"],
+    "metadata": {"ticker": "MSFT", "category": "earnings"}
+  },
+  {
+    "question": "What is the momentum breakout trading strategy?",
+    "ground_truth_answer": "The momentum breakout strategy identifies stocks breaking out of consolidation patterns on high volume, requiring the stock to be above its 200-day MA with RSI between 50-70.",
+    "ground_truth_sources": ["momentum_breakout.md"],
+    "metadata": {"category": "strategy"}
+  },
+  {
+    "question": "Compare Tesla and NVIDIA's revenue growth outlook",
+    "ground_truth_answer": "Both companies provided forward guidance with revenue growth expectations, driven by their respective positions in EV and AI markets.",
+    "ground_truth_sources": ["TSLA_earnings", "NVDA_earnings"],
+    "metadata": {"category": "comparison"}
+  },
+  {
+    "question": "What is pairs trading and how does it achieve market neutrality?",
+    "ground_truth_answer": "Pairs trading is a statistical arbitrage strategy that identifies correlated stocks within the same sector, going long the underperformer and short the outperformer when the spread diverges from historical norms, achieving dollar-neutral positioning.",
+    "ground_truth_sources": ["pairs_trading_sector_neutrality.md"],
+    "metadata": {"category": "strategy"}
+  },
+  {
+    "question": "What were JPMorgan's key financial metrics in their latest earnings?",
+    "ground_truth_answer": "JPMorgan reported revenue, EPS, and margin figures in their earnings call, with discussion of banking sector performance and risk factors.",
+    "ground_truth_sources": ["JPM_earnings"],
+    "metadata": {"ticker": "JPM", "category": "earnings"}
+  },
+  {
+    "question": "How does the volatility contraction breakout strategy identify entry points?",
+    "ground_truth_answer": "The strategy monitors Bollinger Band Width for 6-month lows, then enters when price closes outside the contracted bands with volume at least 50% above the 20-day average.",
+    "ground_truth_sources": ["volatility_contraction_breakout.md"],
+    "metadata": {"category": "strategy"}
+  },
+  {
+    "question": "What is NVIDIA's exposure to AI-related revenue?",
+    "ground_truth_answer": "NVIDIA has significant AI-related revenue driven by GPU demand for AI training and inference workloads, as discussed in their earnings calls.",
+    "ground_truth_sources": ["NVDA_earnings"],
+    "metadata": {"ticker": "NVDA", "category": "earnings"}
+  },
+  {
+    "question": "What risk management techniques are recommended for mean reversion strategies?",
+    "ground_truth_answer": "Mean reversion strategies typically use position sizing limits, stop losses at a fixed percentage below entry, maximum holding periods, and require the stock to maintain its long-term uptrend.",
+    "ground_truth_sources": ["mean_reversion_oversold_bounce.md"],
+    "metadata": {"category": "strategy"}
+  },
+  {
+    "question": "How did Amazon's international revenue perform recently?",
+    "ground_truth_answer": "Amazon's international revenue growth was discussed in their earnings calls, with mention of foreign exchange impacts and regional performance.",
+    "ground_truth_sources": ["AMZN_earnings"],
+    "metadata": {"ticker": "AMZN", "category": "earnings"}
+  },
+  {
+    "question": "What is post-earnings announcement drift and how can traders capitalize on it?",
+    "ground_truth_answer": "Post-earnings announcement drift (PEAD) is the tendency for stocks to continue moving in the direction of an earnings surprise. The earnings momentum strategy capitalizes on this by entering on the first pullback after a strong earnings beat.",
+    "ground_truth_sources": ["earnings_momentum.md"],
+    "metadata": {"category": "strategy"}
+  },
+  {
+    "question": "What sectors are the largest tech companies operating in?",
+    "ground_truth_answer": "The major tech companies (AAPL, MSFT, GOOGL, NVDA, META) primarily operate in the technology sector with exposure to cloud computing, AI, hardware, advertising, and consumer electronics.",
+    "ground_truth_sources": ["AAPL_10-K", "MSFT_10-K", "GOOGL_10-K"],
+    "metadata": {"category": "sector_analysis"}
+  }
+]

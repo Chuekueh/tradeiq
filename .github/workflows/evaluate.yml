@@ -1,0 +1,30 @@
+name: RAG Evaluation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "data/evaluation/**"
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    env:
+      RAG_OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+      - name: Run evaluation
+        run: python scripts/run_evaluation.py --output-md evaluation-report.md --output-json evaluation-results.json
+      - name: Upload evaluation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-report
+          path: |
+            evaluation-report.md
+            evaluation-results.json
