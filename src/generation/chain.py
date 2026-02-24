@@ -7,6 +7,7 @@ from src.generation.llm_service import LLMService
 from src.generation.prompts import RAG_PROMPT_TEMPLATE, SYSTEM_PROMPT
 from src.generation.response_parser import ParsedResponse, ResponseParser
 from src.memory.conversation_memory import ConversationMemory
+from src.retrieval.corrective_rag import RetrievalGrader
 from src.retrieval.hybrid_search import HybridSearcher
 from src.retrieval.reranker import Reranker
 from src.vectorstore.base import SearchResult
@@ -38,6 +39,7 @@ class RAGChain:
         response_parser: ResponseParser,
         retrieval_top_k: int = 5,
         rerank_top_k: int = 3,
+        retrieval_grader: RetrievalGrader | None = None,
     ):
         self._searcher = searcher
         self._reranker = reranker
@@ -46,6 +48,7 @@ class RAGChain:
         self._parser = response_parser
         self._retrieval_top_k = retrieval_top_k
         self._rerank_top_k = rerank_top_k
+        self._grader = retrieval_grader
 
     def invoke(
         self,
@@ -62,6 +65,29 @@ class RAGChain:
 
         # 2. Rerank
         reranked = self._reranker.rerank(query, candidates, top_k=self._rerank_top_k)
+
+        # 2.5. Corrective RAG — grade relevance
+        if self._grader:
+            grading = self._grader.grade(query, reranked)
+            if grading.all_irrelevant:
+                total_ms = (time.perf_counter() - start) * 1000
+                logger.info("crag_all_irrelevant", query=query[:100])
+                return RAGResponse(
+                    answer=(
+                        "I don't have sufficient information in the knowledge base to answer "
+                        "this question accurately. The retrieved documents don't appear to be "
+                        "relevant to your query. Please try rephrasing your question or ask "
+                        "about a topic covered in the financial documents."
+                    ),
+                    sources=reranked,
+                    cited_sources=[],
+                    session_id=session_id,
+                    query_time_ms=round(total_ms, 1),
+                    retrieval_time_ms=round(retrieval_ms, 1),
+                    generation_time_ms=0.0,
+                    model_used=self._llm.model_name,
+                )
+            reranked = grading.relevant_results
 
         # 3. Build context
         context = self._format_context(reranked)
