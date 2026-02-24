@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     # SEC EDGAR
     sec_edgar_user_agent: str = "TradeIQ research@example.com"
 
+    # Hallucination detection
+    hallucination_detection_enabled: bool = True
+
     model_config = {"env_file": ".env", "env_prefix": "RAG_"}
 
 

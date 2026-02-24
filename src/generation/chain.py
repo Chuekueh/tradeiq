@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 import structlog
 
+from src.generation.hallucination_detector import HallucinationDetector
 from src.generation.llm_service import LLMService
 from src.generation.prompts import RAG_PROMPT_TEMPLATE, SYSTEM_PROMPT
 from src.generation.response_parser import ParsedResponse, ResponseParser
@@ -25,6 +26,8 @@ class RAGResponse:
     retrieval_time_ms: float
     generation_time_ms: float
     model_used: str
+    faithfulness_score: float | None = None
+    flagged_claims: list[str] | None = None
 
 
 class RAGChain:
@@ -40,6 +43,7 @@ class RAGChain:
         retrieval_top_k: int = 5,
         rerank_top_k: int = 3,
         retrieval_grader: RetrievalGrader | None = None,
+        hallucination_detector: HallucinationDetector | None = None,
     ):
         self._searcher = searcher
         self._reranker = reranker
@@ -49,6 +53,7 @@ class RAGChain:
         self._retrieval_top_k = retrieval_top_k
         self._rerank_top_k = rerank_top_k
         self._grader = retrieval_grader
+        self._hallucination_detector = hallucination_detector
 
     def invoke(
         self,
@@ -112,6 +117,20 @@ class RAGChain:
         # 6. Parse response
         parsed: ParsedResponse = self._parser.parse(response.content)
 
+        # 6.5. Hallucination detection
+        faithfulness_score = None
+        flagged_claims = None
+        if self._hallucination_detector and reranked:
+            contexts = [r.content for r in reranked]
+            source_names = [
+                r.metadata.get("file_name", r.source) if r.metadata else r.source for r in reranked
+            ]
+            verification = self._hallucination_detector.verify(
+                parsed.answer, contexts, source_names
+            )
+            faithfulness_score = verification.faithfulness_score
+            flagged_claims = verification.flagged_claims
+
         # 7. Save to memory
         self._memory.add_message(session_id, "user", query)
         self._memory.add_message(session_id, "assistant", parsed.answer)
@@ -136,6 +155,8 @@ class RAGChain:
             retrieval_time_ms=round(retrieval_ms, 1),
             generation_time_ms=round(gen_ms, 1),
             model_used=response.model,
+            faithfulness_score=faithfulness_score,
+            flagged_claims=flagged_claims,
         )
 
     def _format_context(self, results: list[SearchResult]) -> str:
