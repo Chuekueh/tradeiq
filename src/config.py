@@ -47,6 +47,9 @@ class Settings(BaseSettings):
     parent_chunk_size: int = 1024
     child_chunk_size: int = 256
 
+    # Contextual retrieval
+    contextual_retrieval_enabled: bool = False
+
     # API
     api_host: str = "0.0.0.0"
     api_port: int = 8000

@@ -89,6 +89,9 @@ class RAGChain:
                 )
             reranked = grading.relevant_results
 
+        # 2.6. Reorder for attention (lost-in-the-middle mitigation)
+        reranked = self._reorder_for_attention(reranked)
+
         # 3. Build context
         context = self._format_context(reranked)
 
@@ -137,6 +140,27 @@ class RAGChain:
             generation_time_ms=round(gen_ms, 1),
             model_used=response.model,
         )
+
+    @staticmethod
+    def _reorder_for_attention(results: list[SearchResult]) -> list[SearchResult]:
+        """Reorder documents to mitigate the 'lost in the middle' problem.
+
+        LLMs attend best to content at the beginning and end of the context.
+        This places the most relevant documents at these positions.
+
+        Input (by relevance):  [1st, 2nd, 3rd, 4th, 5th]
+        Output (by position):  [1st, 3rd, 5th, 4th, 2nd]
+        """
+        if len(results) < 3:
+            return results
+
+        reordered: list[SearchResult] = []
+        for i in range(0, len(results), 2):
+            reordered.append(results[i])
+        for i in range(len(results) - 1 if len(results) % 2 == 0 else len(results) - 2, 0, -2):
+            reordered.append(results[i])
+
+        return reordered
 
     def _format_context(self, results: list[SearchResult]) -> str:
         parts: list[str] = []
