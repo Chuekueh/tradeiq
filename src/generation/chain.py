@@ -9,6 +9,8 @@ from src.generation.response_parser import ParsedResponse, ResponseParser
 from src.memory.conversation_memory import ConversationMemory
 from src.retrieval.corrective_rag import RetrievalGrader
 from src.retrieval.hybrid_search import HybridSearcher
+from src.retrieval.query_router import QueryRouter
+from src.retrieval.query_transformer import QueryTransformer
 from src.retrieval.reranker import Reranker
 from src.vectorstore.base import SearchResult
 
@@ -40,6 +42,8 @@ class RAGChain:
         retrieval_top_k: int = 5,
         rerank_top_k: int = 3,
         retrieval_grader: RetrievalGrader | None = None,
+        query_router: QueryRouter | None = None,
+        query_transformer: QueryTransformer | None = None,
     ):
         self._searcher = searcher
         self._reranker = reranker
@@ -49,6 +53,8 @@ class RAGChain:
         self._retrieval_top_k = retrieval_top_k
         self._rerank_top_k = rerank_top_k
         self._grader = retrieval_grader
+        self._router = query_router
+        self._transformer = query_transformer
 
     def invoke(
         self,
@@ -58,13 +64,41 @@ class RAGChain:
     ) -> RAGResponse:
         start = time.perf_counter()
 
-        # 1. Retrieve
+        # 0. Adaptive query routing
+        effective_retrieval_k = self._retrieval_top_k
+        effective_rerank_k = self._rerank_top_k
+        search_queries = [query]
+
+        if self._router:
+            routing = self._router.route(query)
+            effective_retrieval_k = routing.retrieval_top_k
+            effective_rerank_k = routing.rerank_top_k
+            if routing.use_query_expansion and self._transformer:
+                search_queries = self._transformer.expand_query(query)
+
+        # 1. Retrieve (with possible multi-query from routing)
         retrieval_start = time.perf_counter()
-        candidates = self._searcher.search(query, top_k=self._retrieval_top_k, where=where)
+        if len(search_queries) > 1:
+            # Multi-query: search with each query variant, merge results
+            all_candidates: dict[str, SearchResult] = {}
+            for sq in search_queries:
+                for result in self._searcher.search(sq, top_k=effective_retrieval_k, where=where):
+                    if result.chunk_id not in all_candidates:
+                        all_candidates[result.chunk_id] = result
+                    else:
+                        # Keep highest score
+                        existing = all_candidates[result.chunk_id]
+                        if result.score > existing.score:
+                            all_candidates[result.chunk_id] = result
+            candidates = sorted(all_candidates.values(), key=lambda r: r.score, reverse=True)[
+                :effective_retrieval_k
+            ]
+        else:
+            candidates = self._searcher.search(query, top_k=effective_retrieval_k, where=where)
         retrieval_ms = (time.perf_counter() - retrieval_start) * 1000
 
         # 2. Rerank
-        reranked = self._reranker.rerank(query, candidates, top_k=self._rerank_top_k)
+        reranked = self._reranker.rerank(query, candidates, top_k=effective_rerank_k)
 
         # 2.5. Corrective RAG — grade relevance
         if self._grader:

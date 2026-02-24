@@ -33,7 +33,10 @@ class Settings(BaseSettings):
     hybrid_search_alpha: float = Field(
         default=0.7, ge=0.0, le=1.0, description="Weight for vector vs BM25 (1.0 = pure vector)"
     )
+
+    # Advanced RAG features
     corrective_rag_enabled: bool = True
+    adaptive_routing_enabled: bool = True
 
     # Chunking
     chunk_size: int = 512
@@ -47,9 +50,6 @@ class Settings(BaseSettings):
     parent_child_enabled: bool = True
     parent_chunk_size: int = 1024
     child_chunk_size: int = 256
-
-    # Contextual retrieval
-    contextual_retrieval_enabled: bool = False
 
     # API
     api_host: str = "0.0.0.0"
