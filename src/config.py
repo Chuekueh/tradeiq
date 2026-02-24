@@ -9,6 +9,11 @@ class EmbeddingModel(StrEnum):
     BGE_SMALL = "BAAI/bge-small-en-v1.5"
 
 
+class ChunkingStrategy(StrEnum):
+    RECURSIVE = "recursive"
+    SEMANTIC = "semantic"
+
+
 class Settings(BaseSettings):
     # LLM
     openai_api_key: str = ""
@@ -32,6 +37,7 @@ class Settings(BaseSettings):
     # Chunking
     chunk_size: int = 512
     chunk_overlap: int = 50
+    chunking_strategy: ChunkingStrategy = ChunkingStrategy.RECURSIVE
 
     # API
     api_host: str = "0.0.0.0"
